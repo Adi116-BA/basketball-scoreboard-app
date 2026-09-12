@@ -855,17 +855,16 @@
         }
 
         /**
-         * Display PIN on scoreboard
-         */
-        function displayPin() {
-            const pinDisplay = document.getElementById('pin-display');
-            if (pinDisplay) {
-                pinDisplay.textContent = gameState.currentPin
-                    .split('')
-                    .map(d => '●')
-                    .join(' ');
-            }
-        }
+ * Display readable PIN on scoreboard
+ */
+function displayPin() {
+    const pinDisplay = document.getElementById('pin-display');
+    if (pinDisplay && gameState.currentPin) {
+        // Displays readable digits separated by spaces (e.g., "4 8 2 9")
+        pinDisplay.textContent = gameState.currentPin.split('').join(' ');
+    }
+ }
+
 
         /**
          * Update connection status indicator
