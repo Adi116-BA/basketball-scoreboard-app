@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>Basketball Scoreboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background: #0a0a0a;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Main Score Display */
+        .main-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 20px;
+            background: #1a1a1a;
+        }
+
+        .team-section {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 3px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .team-section.active {
+            border-color: #ff8c00;
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .team-name input {
+            background: #1a1a1a;
+            border: 2px solid #ff8c00;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .clock-display {
+            background: #000;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 48px;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            margin: 20px 0;
+            border: 2px solid #ff8c00;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+
+        .stat {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        /* Shot Clock */
+        .center-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .shot-clock {
+            background: #000;
+            border: 4px solid #ff1744;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .shot-clock-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #ff1744;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .shot-clock-display {
+            font-size: 56px;
+            font-weight: bold;
+            color: #ff1744;
+            text-shadow: 0 0 15px #ff1744;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .control-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            background: #444;
+            color: #fff;
+        }
+
+        button:hover {
+            background: #555;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-score {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            font-size: 16px;
+            padding: 15px;
+        }
+
+        .btn-score:hover {
+            background: linear-gradient(135deg, #ff5500 0%, #ff7a00 100%);
+        }
+
+        .btn-adjust {
+            background: #4a5568;
+        }
+
+        .btn-adjust:hover {
+            background: #5a6578;
+        }
+
+        .btn-clock {
+            background: #2d5a3d;
+        }
+
+        .btn-clock:hover {
+            background: #3d6a4d;
+        }
+
+        .btn-clock.running {
+            background: #c41c3b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-reset {
+            background: #8b0000;
+        }
+
+        .btn-reset:hover {
+            background: #a00000;
+        }
+
+        /* Multi-screen controls */
+        .screen-controls {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            background: #444;
+            border: 2px solid #555;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.active {
+            background: #ff8c00;
+            border-color: #ff8c00;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+        }
+
+        .setting-row input,
+        .setting-row select {
+            background: #444;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100px;
+        }
+
+        /* Responsive Grid */
+        @media (max-width: 1024px) {
+            .main-display {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .center-section {
+                grid-column: 1 / -1;
+                order: -1;
+            }
+
+            .score-display {
+                font-size: 56px;
+            }
+
+            .clock-display {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-display {
+                grid-template-columns: 1fr;
+            }
+
+            .score-display {
+                font-size: 48px;
+            }
+
+            .clock-display {
+                font-size: 32px;
+            }
+
+            .shot-clock-display {
+                font-size: 40px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* Landscape Mode */
+        @media (orientation: landscape) and (max-height: 600px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
+            .main-display {
+                padding: 10px;
+                gap: 5px;
+            }
+
+            .team-section {
+                padding: 10px;
+            }
+
+            .score-display {
+                font-size: 48px;
+                margin: 10px 0;
+            }
+
+            .clock-display {
+                font-size: 28px;
+                padding: 8px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+        }
+
+        /* Fullscreen Mode */
+        .fullscreen-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            background: rgba(255, 140, 0, 0.8);
+        }
+
+        .fullscreen-display {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .fullscreen-display .score-display {
+            font-size: 150px;
+        }
+
+        .fullscreen-display .clock-display {
+            font-size: 80px;
+        }
+
+        .fullscreen-display .shot-clock-display {
+            font-size: 120px;
+        }
+
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            cursor: pointer;
+            color: #fff;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff8c00;
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+
+    <div id="fullscreenDisplay" class="fullscreen-display" style="display: none;">
+        <button class="close-fullscreen" onclick="toggleFullscreen()">&times;</button>
+        <div style="text-align: center;">
+            <div style="margin-bottom: 40px;">
+                <div class="team-name" id="fs-team1-name">Team 1</div>
+                <div class="score-display" id="fs-score1">0</div>
+            </div>
+            <div class="clock-display" id="fs-game-clock">12:00</div>
+            <div style="margin-top: 40px;">
+                <div class="team-name" id="fs-team2-name">Team 2</div>
+                <div class="score-display" id="fs-score2">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🏀 Basketball Scoreboard</h1>
+        </div>
+
+        <div class="main-display">
+            <!-- Team 1 -->
+            <div class="team-section" id="team1-section">
+                <div class="team-name">
+                    <input type="text" id="team1-name" value="Team 1" maxlength="15">
+                </div>
+                <div class="score-display" id="score1">0</div>
+                <div class="clock-display" id="game-clock">12:00</div>
+                <div class="stats-row">
+                    <div class="stat">
+                        <div class="stat-value" id="fouls1">0</div>
+                        <div class="stat-label">Fouls</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="timeouts1">3</div>
+                        <div class="stat-label">Timeouts</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-score" onclick="addPoints(1, 1)">+1</button>
+                    <button class="btn-score" onclick="addPoints(1, 2)">+2</button>
+                    <button class="btn-score" onclick="addPoints(1, 3)">+3</button>
+                    <button class="btn-adjust" onclick="addPoints(1, -1)">-1</button>
+                    <button class="btn-adjust" onclick="addFoul(1)">Foul</button>
+                    <button class="btn-adjust" onclick="timeout(1)">Timeout</button>
+                </div>
+            </div>
+
+            <!-- Center Controls -->
+            <div class="center-section">
+                <div class="shot-clock">
+                    <div class="shot-clock-label">Shot Clock</div>
+                    <div class="shot-clock-display" id="shot-clock">24</div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="control-title">Game Clock</div>
+                    <div class="button-group">
+                        <button class="btn-clock" id="play-btn" onclick="toggleGameClock()">Start</button>
+                        <button class="btn-clock" onclick="resetGameClock()">Reset</button>
+                    </div>
+
+                    <div class="control-title" style="margin-top: 15px;">Shot Clock</div>
+                    <div class="button-group">
+                        <button class="btn-clock" id="shot-play-btn" onclick="toggleShotClock()">Start</button>
+                        <button class="btn-clock" onclick="resetShotClock()">Reset</button>
+                    </div>
+
+                    <div class="screen-controls">
+                        <div class="control-title">Display Mode</div>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" onclick="switchView('normal')">Normal</button>
+                            <button class="toggle-btn" onclick="switchView('compact')">Compact</button>
+                            <button class="toggle-btn" onclick="toggleFullscreen()">Fullscreen</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-panel">
+                        <div class="control-title">Settings</div>
+                        <div class="setting-row">
+                            <span>Game Time (sec)</span>
+                            <input type="number" id="game-time-setting" value="720" min="1">
+                        </div>
+                        <div class="setting-row">
+                            <span>Shot Clock (sec)</span>
+                            <input type="number" id="shot-time-setting" value="24" min="1">
+                        </div>
+                        <button class="btn-reset" onclick="resetAll()" style="width: 100%; margin-top: 10px;">RESET GAME</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team 2 -->
+            <div class="team-section" id="team2-section">
+                <div class="team-name">
+                    <input type="text" id="team2-name" value="Team 2" maxlength="15">
+                </div>
+                <div class="score-display" id="score2">0</div>
+                <div class="clock-display" id="game-clock2">12:00</div>
+                <div class="stats-row">
+                    <div class="stat">
+                        <div class="stat-value" id="fouls2">0</div>
+                        <div class="stat-label">Fouls</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="timeouts2">3</div>
+                        <div class="stat-label">Timeouts</div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-score" onclick="addPoints(2, 1)">+1</button>
+                    <button class="btn-score" onclick="addPoints(2, 2)">+2</button>
+                    <button class="btn-score" onclick="addPoints(2, 3)">+3</button>
+                    <button class="btn-adjust" onclick="addPoints(2, -1)">-1</button>
+                    <button class="btn-adjust" onclick="addFoul(2)">Foul</button>
+                    <button class="btn-adjust" onclick="timeout(2)">Timeout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            score1: 0,
+            score2: 0,
+            fouls1: 0,
+            fouls2: 0,
+            timeouts1: 3,
+            timeouts2: 3,
+            gameTime: 720, // 12 minutes in seconds
+            shotTime: 24,
+            gameClockRunning: false,
+            shotClockRunning: false,
+            gameTimeInterval: null,
+            shotTimeInterval: null
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            updateDisplay();
+            setupKeyboardShortcuts();
+            // Enable offline support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript,self.addEventListener("install",e=>self.skipWaiting());self.addEventListener("activate",e=>e.waitUntil(clients.claim()));')
+                    .catch(() => { /* offline app works without SW */ });
+            }
+        });
+
+        // Score Management
+        function addPoints(team, points) {
+            if (team === 1) {
+                gameState.score1 = Math.max(0, gameState.score1 + points);
+            } else {
+                gameState.score2 = Math.max(0, gameState.score2 + points);
+            }
+            saveToLocalStorage();
+            updateDisplay();
+        }
+
+        function addFoul(team) {
+            if (team === 1) {
+                gameState.fouls1++;
+                if (gameState.fouls1 >= 6) {
+                    showNotification(`Team 1: Disqualified! (${gameState.fouls1} fouls)`);
+                }
+            } else {
+                gameState.fouls2++;
+                if (gameState.fouls2 >= 6) {
+                    showNotification(`Team 2: Disqualified! (${gameState.fouls2} fouls)`);
+                }
+            }
+            saveToLocalStorage();
+            updateDisplay();
+        }
+
+        function timeout(team) {
+            if (team === 1) {
+                if (gameState.timeouts1 > 0) {
+                    gameState.timeouts1--;
+                    showNotification(`Team 1: Timeout Used (${gameState.timeouts1} remaining)`);
+                } else {
+                    showNotification('Team 1: No timeouts remaining!');
+                }
+            } else {
+                if (gameState.timeouts2 > 0) {
+                    gameState.timeouts2--;
+                    showNotification(`Team 2: Timeout Used (${gameState.timeouts2} remaining)`);
+                } else {
+                    showNotification('Team 2: No timeouts remaining!');
+                }
+            }
+            saveToLocalStorage();
+            updateDisplay();
+        }
+
+        // Clock Management
+        function toggleGameClock() {
+            gameState.gameClockRunning = !gameState.gameClockRunning;
+            const btn = document.getElementById('play-btn');
+            
+            if (gameState.gameClockRunning) {
+                btn.textContent = 'Pause';
+                btn.classList.add('running');
+                startGameClock();
+            } else {
+                btn.textContent = 'Start';
+                btn.classList.remove('running');
+                clearInterval(gameState.gameTimeInterval);
+            }
+        }
+
+        function toggleShotClock() {
+            gameState.shotClockRunning = !gameState.shotClockRunning;
+            const btn = document.getElementById('shot-play-btn');
+            
+            if (gameState.shotClockRunning) {
+                btn.textContent = 'Pause';
+                btn.classList.add('running');
+                startShotClock();
+            } else {
+                btn.textContent = 'Start';
+                btn.classList.remove('running');
+                clearInterval(gameState.shotTimeInterval);
+            }
+        }
+
+        function startGameClock() {
+            gameState.gameTimeInterval = setInterval(() => {
+                gameState.gameTime--;
+                if (gameState.gameTime <= 0) {
+                    gameState.gameTime = 0;
+                    gameState.gameClockRunning = false;
+                    clearInterval(gameState.gameTimeInterval);
+                    document.getElementById('play-btn').textContent = 'Start';
+                    document.getElementById('play-btn').classList.remove('running');
+                    showNotification('Game Time Expired!');
+                }
+                updateDisplay();
+            }, 100); // 100ms for smooth updates
+        }
+
+        function startShotClock() {
+            gameState.shotTimeInterval = setInterval(() => {
+                gameState.shotTime -= 0.1;
+                gameState.shotTime = Math.max(0, Math.round(gameState.shotTime * 10) / 10);
+                if (gameState.shotTime <= 0) {
+                    gameState.shotTime = 0;
+                    gameState.shotClockRunning = false;
+                    clearInterval(gameState.shotTimeInterval);
+                    document.getElementById('shot-play-btn').textContent = 'Start';
+                    document.getElementById('shot-play-btn').classList.remove('running');
+                    playAlertSound();
+                    showNotification('Shot Clock Expired!');
+                }
+                updateDisplay();
+            }, 100);
+        }
+
+        function resetGameClock() {
+            clearInterval(gameState.gameTimeInterval);
+            gameState.gameClockRunning = false;
+            gameState.gameTime = parseInt(document.getElementById('game-time-setting').value);
+            document.getElementById('play-btn').textContent = 'Start';
+            document.getElementById('play-btn').classList.remove('running');
+            updateDisplay();
+        }
+
+        function resetShotClock() {
+            clearInterval(gameState.shotTimeInterval);
+            gameState.shotClockRunning = false;
+            gameState.shotTime = parseInt(document.getElementById('shot-time-setting').value);
+            document.getElementById('shot-play-btn').textContent = 'Start';
+            document.getElementById('shot-play-btn').classList.remove('running');
+            updateDisplay();
+        }
+
+        function resetAll() {
+            if (confirm('Reset entire game? This will clear all scores and statistics.')) {
+                clearInterval(gameState.gameTimeInterval);
+                clearInterval(gameState.shotTimeInterval);
+                gameState.score1 = 0;
+                gameState.score2 = 0;
+                gameState.fouls1 = 0;
+                gameState.fouls2 = 0;
+                gameState.timeouts1 = 3;
+                gameState.timeouts2 = 3;
+                gameState.gameTime = parseInt(document.getElementById('game-time-setting').value);
+                gameState.shotTime = parseInt(document.getElementById('shot-time-setting').value);
+                gameState.gameClockRunning = false;
+                gameState.shotClockRunning = false;
+                document.getElementById('play-btn').textContent = 'Start';
+                document.getElementById('play-btn').classList.remove('running');
+                document.getElementById('shot-play-btn').textContent = 'Start';
+                document.getElementById('shot-play-btn').classList.remove('running');
+                saveToLocalStorage();
+                updateDisplay();
+                showNotification('Game Reset!');
+            }
+        }
+
+        // Display Updates
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            // Scores
+            document.getElementById('score1').textContent = gameState.score1;
+            document.getElementById('score2').textContent = gameState.score2;
+            
+            // Fouls
+            document.getElementById('fouls1').textContent = gameState.fouls1;
+            document.getElementById('fouls2').textContent = gameState.fouls2;
+            
+            // Timeouts
+            document.getElementById('timeouts1').textContent = gameState.timeouts1;
+            document.getElementById('timeouts2').textContent = gameState.timeouts2;
+            
+            // Game Clock
+            const gameClockStr = formatTime(gameState.gameTime);
+            document.getElementById('game-clock').textContent = gameClockStr;
+            document.getElementById('game-clock2').textContent = gameClockStr;
+            
+            // Shot Clock
+            document.getElementById('shot-clock').textContent = gameState.shotTime.toFixed(1);
+            
+            // Fullscreen Display
+            document.getElementById('fs-score1').textContent = gameState.score1;
+            document.getElementById('fs-score2').textContent = gameState.score2;
+            document.getElementById('fs-game-clock').textContent = gameClockStr;
+            
+            // Team names
+            document.getElementById('fs-team1-name').textContent = document.getElementById('team1-name').value;
+            document.getElementById('fs-team2-name').textContent = document.getElementById('team2-name').value;
+        }
+
+        // Multi-screen Support
+        function switchView(view) {
+            const buttons = document.querySelectorAll('.toggle-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (view === 'compact') {
+                showNotification('Compact view activated');
+                document.querySelector('.main-display').style.gridTemplateColumns = '1fr';
+            } else if (view === 'normal') {
+                showNotification('Normal view activated');
+                document.querySelector('.main-display').style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+            }
+        }
+
+        function toggleFullscreen() {
+            const display = document.getElementById('fullscreenDisplay');
+            display.style.display = display.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // Keyboard Shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                switch (e.key) {
+                    case '1': addPoints(1, 1); break;
+                    case '2': addPoints(1, 2); break;
+                    case '3': addPoints(1, 3); break;
+                    case 'q': addFoul(1); break;
+                    case 'w': timeout(1); break;
+                    case 't': toggleGameClock(); break;
+                    case 's': toggleShotClock(); break;
+                    case 'r': resetShotClock(); break;
+                    case ' ': e.preventDefault(); toggleGameClock(); break;
+                }
+            });
+        }
+
+        // Notifications
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // Audio Alert
+        function playAlertSound() {
+            // Create beep sound using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // Local Storage
+        function saveToLocalStorage() {
+            localStorage.setItem('basketballScoreboard', JSON.stringify({
+                score1: gameState.score1,
+                score2: gameState.score2,
+                fouls1: gameState.fouls1,
+                fouls2: gameState.fouls2,
+                timeouts1: gameState.timeouts1,
+                timeouts2: gameState.timeouts2,
+                team1Name: document.getElementById('team1-name').value,
+                team2Name: document.getElementById('team2-name').value
+            }));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('basketballScoreboard');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameState.score1 = data.score1;
+                gameState.score2 = data.score2;
+                gameState.fouls1 = data.fouls1;
+                gameState.fouls2 = data.fouls2;
+                gameState.timeouts1 = data.timeouts1;
+                gameState.timeouts2 = data.timeouts2;
+                document.getElementById('team1-name').value = data.team1Name;
+                document.getElementById('team2-name').value = data.team2Name;
+            }
+        }
+
+        // Auto-save on team name change
+        document.getElementById('team1-name').addEventListener('change', saveToLocalStorage);
+        document.getElementById('team2-name').addEventListener('change', saveToLocalStorage);
+    </script>
+</body>
+</html>
