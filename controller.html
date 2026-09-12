@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-touch-icon" href="./images/icon-192.png">
+    <meta name="theme-color" content="#ff5500">
+    <link rel="manifest" href="manifest.json">
+    <title>Basketball Scoreboard Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #0a0a0a;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        /* PIN Entry Screen */
+        .pin-entry-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .pin-input-label {
+            font-size: 16px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pin-input-display {
+            font-size: 56px;
+            font-weight: bold;
+            color: #ff8c00;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 12px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            border: 3px solid #ff8c00;
+            border-radius: 15px;
+            width: 100%;
+            text-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+        }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .numpad button {
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background: #444;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .numpad button:hover {
+            background: #555;
+            transform: scale(1.05);
+        }
+
+        .numpad button:active {
+            transform: scale(0.95);
+        }
+
+        .numpad button.delete {
+            grid-column: 1 / 2;
+            background: #c41c3b;
+            border-color: #e53935;
+        }
+
+        .numpad button.delete:hover {
+            background: #e53935;
+        }
+
+        .numpad button.submit {
+            grid-column: 2 / 4;
+            background: #2d5a3d;
+            border-color: #3d7a4d;
+        }
+
+        .numpad button.submit:hover {
+            background: #3d7a4d;
+        }
+
+        .pin-error {
+            color: #ff4444;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+            margin-top: 10px;
+        }
+
+        .pin-attempts {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            margin-right: 8px;
+        }
+
+        .status-indicator.connected {
+            background: #00ff00;
+            animation: blink 1s infinite;
+        }
+
+        .status-indicator.unauthenticated {
+            background: #ffaa00;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* Controller Screen (Hidden initially) */
+        .controller-screen {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controller-screen.active {
+            display: flex;
+        }
+
+        .game-status {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .team-controls {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .team-label {
+            font-size: 14px;
+            color: #ff8c00;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: #ff8c00;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .button-grid button {
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            background: #444;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .button-grid button:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+
+        .button-grid button:active {
+            transform: translateY(0);
+        }
+
+        .score-btn {
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+            border-color: #ff8c00;
+        }
+
+        .score-btn:hover {
+            background: linear-gradient(135deg, #ff5500 0%, #ff7a00 100%);
+        }
+
+        .foul-btn {
+            background: #4a5568;
+            border-color: #5a6578;
+        }
+
+        .foul-btn:hover {
+            background: #5a6578;
+        }
+
+        .timeout-btn {
+            background: #2d5a3d;
+            border-color: #3d7a4d;
+        }
+
+        .timeout-btn:hover {
+            background: #3d7a4d;
+        }
+
+        .clock-controls {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .clock-section {
+            margin-bottom: 15px;
+        }
+
+        .clock-title {
+            font-size: 12px;
+            color: #ff8c00;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .clock-display {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 8px 0;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ff8c00;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+
+        .clock-button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .clock-btn {
+            padding: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            background: #2d5a3d;
+            border: 2px solid #3d7a4d;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .clock-btn:hover {
+            background: #3d7a4d;
+            transform: translateY(-2px);
+        }
+
+        .clock-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff8c00;
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .disconnect-btn {
+            background: #c41c3b;
+            border: 2px solid #e53935;
+            color: #fff;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .disconnect-btn:hover {
+            background: #e53935;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .pin-input-display {
+                font-size: 40px;
+                letter-spacing: 8px;
+            }
+
+            .numpad button {
+                padding: 15px;
+                font-size: 20px;
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .score-display {
+                font-size: 36px;
+            }
+
+            .clock-display {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏀 Scoreboard Controller</h1>
+        </div>
+
+        <div class="content">
+            <!-- Connection Status -->
+            <div class="connection-status">
+                <span class="status-indicator" id="status-indicator"></span>
+                <span id="connection-text">Connecting...</span>
+            </div>
+
+            <!-- PIN Entry Screen -->
+            <div class="pin-entry-screen" id="pin-entry-screen">
+                <div class="pin-input-label">Enter Secure PIN</div>
+                <div class="pin-input-display" id="pin-display">●●●●</div>
+                
+                <div class="numpad">
+                    <button onclick="pinAddDigit('1')">1</button>
+                    <button onclick="pinAddDigit('2')">2</button>
+                    <button onclick="pinAddDigit('3')">3</button>
+                    <button onclick="pinAddDigit('4')">4</button>
+                    <button onclick="pinAddDigit('5')">5</button>
+                    <button onclick="pinAddDigit('6')">6</button>
+                    <button onclick="pinAddDigit('7')">7</button>
+                    <button onclick="pinAddDigit('8')">8</button>
+                    <button onclick="pinAddDigit('9')">9</button>
+                    <button class="delete" onclick="pinDelete()">⌫</button>
+                    <button onclick="pinAddDigit('0')">0</button>
+                    <button class="submit" onclick="pinSubmit()">✓ Submit</button>
+                </div>
+
+                <div class="pin-error" id="pin-error"></div>
+                <div class="pin-attempts" id="pin-attempts"></div>
+            </div>
+
+            <!-- Controller Screen (shown after authentication) -->
+            <div class="controller-screen" id="controller-screen">
+                <!-- Game Status -->
+                <div class="game-status">
+                    <div class="clock-display" id="game-clock-display">12:00</div>
+                </div>
+
+                <!-- Team 1 Controls -->
+                <div class="team-controls">
+                    <div class="team-label" id="team1-name">Team 1</div>
+                    <div class="score-display" id="team1-score">0</div>
+                    <div class="button-grid">
+                        <button class="score-btn" onclick="sendCommand('SCORE_HOME', 1)">+1</button>
+                        <button class="score-btn" onclick="sendCommand('SCORE_HOME', 2)">+2</button>
+                        <button class="score-btn" onclick="sendCommand('SCORE_HOME', 3)">+3</button>
+                        <button class="foul-btn" onclick="sendCommand('FOUL_HOME')">Foul</button>
+                        <button class="timeout-btn" onclick="sendCommand('TIMEOUT_HOME')">TO</button>
+                        <button onclick="sendCommand('SCORE_HOME', -1)" style="background: #555; border-color: #666;">-1</button>
+                    </div>
+                </div>
+
+                <!-- Team 2 Controls -->
+                <div class="team-controls">
+                    <div class="team-label" id="team2-name">Team 2</div>
+                    <div class="score-display" id="team2-score">0</div>
+                    <div class="button-grid">
+                        <button class="score-btn" onclick="sendCommand('SCORE_AWAY', 1)">+1</button>
+                        <button class="score-btn" onclick="sendCommand('SCORE_AWAY', 2)">+2</button>
+                        <button class="score-btn" onclick="sendCommand('SCORE_AWAY', 3)">+3</button>
+                        <button class="foul-btn" onclick="sendCommand('FOUL_AWAY')">Foul</button>
+                        <button class="timeout-btn" onclick="sendCommand('TIMEOUT_AWAY')">TO</button>
+                        <button onclick="sendCommand('SCORE_AWAY', -1)" style="background: #555; border-color: #666;">-1</button>
+                    </div>
+                </div>
+
+                <!-- Clock Controls -->
+                <div class="clock-controls">
+                    <div class="clock-section">
+                        <div class="clock-title">Game Clock</div>
+                        <div class="clock-button-group">
+                            <button class="clock-btn" onclick="sendCommand('TOGGLE_GAME_CLOCK')">Start/Pause</button>
+                            <button class="clock-btn" onclick="sendCommand('RESET_GAME_CLOCK')">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="clock-section">
+                        <div class="clock-title">Shot Clock</div>
+                        <div class="clock-button-group">
+                            <button class="clock-btn" onclick="sendCommand('TOGGLE_SHOT_CLOCK')">Start/Pause</button>
+                            <button class="clock-btn" onclick="sendCommand('RESET_SHOT_CLOCK')">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONTROLLER (SMARTPHONE) - PIN AUTHENTICATION & REMOTE CONTROL
+        // ============================================================
+
+        const controllerState = {
+            mode: 'init', // init, pin-entry, authenticated
+            peerId: null,
+            peerConnection: null,
+            pin: '',
+            pinMaxLength: 4,
+            authStatus: 'UNAUTHENTICATED',
+            failedAttempts: 0,
+            // Game state sync
+            team1Score: 0,
+            team2Score: 0,
+            gameTime: 720,
+            shotTime: 24,
+            gameClockRunning: false,
+            shotClockRunning: false
+        };
+
+        /**
+         * Initialize PeerJS connection and wait for scoreboard
+         */
+        function initPeerConnection() {
+            try {
+                // Generate a random peer ID for this controller
+                controllerState.peerId = 'controller-' + Math.random().toString(36).substring(7);
+                
+                console.log('[Controller] Initializing PeerJS with ID:', controllerState.peerId);
+                
+                // Note: In production, you would initialize PeerJS here
+                // For now, this is a placeholder structure
+                updateConnectionStatus('Connecting to scoreboard...');
+                
+                // Simulate connection for demo purposes
+                setTimeout(() => {
+                    onPeerConnectionEstablished();
+                }, 500);
+            } catch (error) {
+                console.error('[Controller] Error initializing peer connection:', error);
+                showNotification('Failed to initialize connection');
+            }
+        }
+
+        /**
+         * Called when connection is established to scoreboard
+         */
+        function onPeerConnectionEstablished() {
+            console.log('[Controller] Connected to scoreboard');
+            updateConnectionStatus('Ready to authenticate', 'unauthenticated');
+            showControllerScreen(false); // Show PIN entry
+        }
+
+        /**
+         * Handle incoming message from scoreboard
+         */
+        function handleScoreboardMessage(data) {
+            console.log('[Controller] Message from scoreboard:', data);
+
+            switch (data.type) {
+                case 'AUTH_SUCCESS':
+                    handleAuthSuccess();
+                    break;
+                
+                case 'AUTH_FAILURE':
+                    handleAuthFailure(data.message, data.attempts);
+                    break;
+                
+                case 'AUTH_LOCKED':
+                    handleAuthLocked(data.message);
+                    break;
+                
+                case 'STATE_UPDATE':
+                    updateGameStateDisplay(data);
+                    break;
+                
+                case 'COMMAND_ACK':
+                    console.log('[Controller] Command acknowledged:', data.command);
+                    break;
+                
+                case 'ERROR':
+                    showNotification('Error: ' + data.message);
+                    break;
+                
+                default:
+                    console.warn('[Controller] Unknown message type:', data.type);
+            }
+        }
+
+        /**
+         * Handle successful authentication
+         */
+        function handleAuthSuccess() {
+            console.log('[Controller] Authentication successful');
+            controllerState.authStatus = 'AUTHENTICATED';
+            controllerState.failedAttempts = 0;
+            updateConnectionStatus('Connected & Authenticated', 'connected');
+            showControllerScreen(true); // Show game controls
+            showNotification('✓ Authenticated Successfully!');
+        }
+
+        /**
+         * Handle authentication failure
+         */
+        function handleAuthFailure(message, attempts) {
+            console.warn('[Controller] Authentication failed. Attempts:', attempts);
+            controllerState.failedAttempts = attempts || 0;
+            pinClear();
+            displayPinError(message);
+            displayPinAttempts(attempts);
+            showNotification('❌ Invalid PIN');
+        }
+
+        /**
+         * Handle too many failed attempts (locked out)
+         */
+        function handleAuthLocked(message) {
+            console.error('[Controller] Authentication locked:', message);
+            showNotification('❌ Too many attempts. Disconnected.');
+            setTimeout(() => {
+                disconnect();
+            }, 2000);
+        }
+
+        /**
+         * Update game state display from scoreboard
+         */
+        function updateGameStateDisplay(state) {
+            controllerState.team1Score = state.score1;
+            controllerState.team2Score = state.score2;
+            controllerState.gameTime = state.gameTime;
+            controllerState.shotTime = state.shotTime;
+            controllerState.gameClockRunning = state.gameClockRunning;
+            controllerState.shotClockRunning = state.shotClockRunning;
+
+            // Update displays
+            document.getElementById('team1-score').textContent = state.score1;
+            document.getElementById('team2-score').textContent = state.score2;
+            document.getElementById('game-clock-display').textContent = formatTime(state.gameTime);
+        }
+
+        /**
+         * Format time display
+         */
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // ============================================================
+        // PIN ENTRY FUNCTIONS
+        // ============================================================
+
+        function pinAddDigit(digit) {
+            if (controllerState.pin.length < controllerState.pinMaxLength) {
+                controllerState.pin += digit;
+                updatePinDisplay();
+                clearPinError();
+            }
+        }
+
+        function pinDelete() {
+            controllerState.pin = controllerState.pin.slice(0, -1);
+            updatePinDisplay();
+            clearPinError();
+        }
+
+        function pinClear() {
+            controllerState.pin = '';
+            updatePinDisplay();
+            clearPinError();
+        }
+
+        function updatePinDisplay() {
+            const display = document.getElementById('pin-display');
+            if (display) {
+                const masked = controllerState.pin.split('').map(() => '●').join('');
+                const empty = '●'.repeat(Math.max(0, controllerState.pinMaxLength - controllerState.pin.length));
+                display.textContent = masked + empty;
+            }
+        }
+
+        function pinSubmit() {
+            if (controllerState.pin.length !== controllerState.pinMaxLength) {
+                displayPinError('PIN must be 4 digits');
+                return;
+            }
+
+            console.log('[Controller] Submitting PIN for authentication');
+            sendMessage({
+                type: 'AUTHENTICATE',
+                pin: controllerState.pin
+            });
+
+            // Disable submit during transmission
+            setTimeout(() => {
+                // Wait for response
+            }, 500);
+        }
+
+        function displayPinError(message) {
+            const errorEl = document.getElementById('pin-error');
+            if (errorEl) {
+                errorEl.textContent = message;
+            }
+        }
+
+        function clearPinError() {
+            const errorEl = document.getElementById('pin-error');
+            if (errorEl) {
+                errorEl.textContent = '';
+            }
+        }
+
+        function displayPinAttempts(attempts) {
+            const attemptsEl = document.getElementById('pin-attempts');
+            if (attemptsEl && attempts > 0) {
+                const remaining = Math.max(0, 3 - attempts);
+                if (remaining > 0) {
+                    attemptsEl.textContent = `${remaining} attempts remaining`;
+                } else {
+                    attemptsEl.textContent = 'Too many failed attempts';
+                }
+            }
+        }
+
+        // ============================================================
+        // GAME COMMAND FUNCTIONS
+        // ============================================================
+
+        function sendCommand(command, value) {
+            const message = { type: command };
+            if (value !== undefined) {
+                message.points = value;
+            }
+            sendMessage(message);
+        }
+
+        /**
+         * Send message to scoreboard
+         */
+        function sendMessage(message) {
+            if (!controllerState.peerConnection || !controllerState.peerConnection.open) {
+                showNotification('Not connected to scoreboard');
+                return;
+            }
+
+            if (controllerState.authStatus !== 'AUTHENTICATED' && message.type !== 'AUTHENTICATE') {
+                showNotification('Not authenticated');
+                return;
+            }
+
+            console.log('[Controller] Sending message:', message);
+            try {
+                controllerState.peerConnection.send(message);
+            } catch (error) {
+                console.error('[Controller] Error sending message:', error);
+                showNotification('Failed to send command');
+            }
+        }
+
+        // ============================================================
+        // UI MANAGEMENT
+        // ============================================================
+
+        function showControllerScreen(show) {
+            const pinScreen = document.getElementById('pin-entry-screen');
+            const controlScreen = document.getElementById('controller-screen');
+
+            if (show) {
+                if (pinScreen) pinScreen.style.display = 'none';
+                if (controlScreen) controlScreen.classList.add('active');
+            } else {
+                if (pinScreen) pinScreen.style.display = 'flex';
+                if (controlScreen) controlScreen.classList.remove('active');
+            }
+        }
+
+        function updateConnectionStatus(text, status) {
+            const statusEl = document.getElementById('connection-text');
+            const indicatorEl = document.getElementById('status-indicator');
+
+            if (statusEl) {
+                statusEl.textContent = text;
+            }
+
+            if (indicatorEl) {
+                indicatorEl.className = 'status-indicator';
+                if (status === 'connected') {
+                    indicatorEl.classList.add('connected');
+                } else if (status === 'unauthenticated') {
+                    indicatorEl.classList.add('unauthenticated');
+                }
+            }
+        }
+
+        function disconnect() {
+            console.log('[Controller] Disconnecting');
+            if (controllerState.peerConnection) {
+                controllerState.peerConnection.close();
+            }
+            controllerState.authStatus = 'UNAUTHENTICATED';
+            controllerState.pin = '';
+            showControllerScreen(false);
+            updateConnectionStatus('Disconnected', '');
+            showNotification('Disconnected from scoreboard');
+            
+            // Reinitialize connection
+            setTimeout(() => {
+                initPeerConnection();
+            }, 1000);
+        }
+
+        /**
+         * Show notification
+         */
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        /**
+         * Initialize on page load
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[Controller] Page loaded, initializing...');
+            initPeerConnection();
+
+            // Enable PWA support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[PWA] Service Worker registered'))
+                    .catch(err => console.log('[PWA] Service Worker registration failed:', err));
+            }
+        });
+
+        // Prevent accidental page navigation
+        window.addEventListener('beforeunload', (e) => {
+            if (controllerState.authStatus === 'AUTHENTICATED') {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
