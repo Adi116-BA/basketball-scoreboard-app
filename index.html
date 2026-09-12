@@ -318,7 +318,185 @@
             width: 100px;
         }
 
-        /* Responsive Grid */
+        /* Landscape Mode - Scoreboard Layout */
+        @media (orientation: landscape) and (max-height: 800px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                border-radius: 10px;
+                height: 100vh;
+            }
+
+            .header {
+                padding: 8px;
+                display: none;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            /* Landscape Grid Layout */
+            .main-display {
+                display: grid;
+                grid-template-columns: 1fr 2fr 1fr;
+                grid-template-rows: auto 1fr auto;
+                gap: 8px;
+                padding: 8px;
+                height: 100%;
+            }
+
+            /* Left Team - spans all rows */
+            #team1-section {
+                grid-column: 1;
+                grid-row: 1 / -1;
+                padding: 10px;
+            }
+
+            /* Right Team - spans all rows */
+            #team2-section {
+                grid-column: 3;
+                grid-row: 1 / -1;
+                padding: 10px;
+            }
+
+            /* Center Section Layout */
+            .center-section {
+                grid-column: 2;
+                grid-row: 1 / -1;
+                display: grid;
+                grid-template-rows: auto 1fr auto;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            /* Game Clock on Top */
+            #game-clock-landscape {
+                order: -1;
+                grid-row: 1;
+                font-size: 48px;
+                padding: 8px;
+                margin: 0;
+                height: auto;
+            }
+
+            /* Control Panel in Middle */
+            .control-panel {
+                grid-row: 2;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                background: transparent;
+            }
+
+            .control-title {
+                margin-bottom: 6px;
+                font-size: 11px;
+            }
+
+            .button-group {
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+
+            .button-group button {
+                padding: 8px 10px;
+                font-size: 11px;
+            }
+
+            /* Shot Clock on Bottom */
+            .shot-clock {
+                grid-row: 3;
+                margin-bottom: 0;
+                padding: 8px;
+                border-radius: 10px;
+            }
+
+            .shot-clock-display {
+                font-size: 36px;
+            }
+
+            .shot-clock-label {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            /* Team Sections */
+            .team-section {
+                padding: 10px;
+                border-radius: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .team-name {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+
+            .team-name input {
+                padding: 5px;
+                font-size: 12px;
+            }
+
+            .score-display {
+                font-size: 48px;
+                margin: 8px 0;
+            }
+
+            .stats-row {
+                margin: 8px 0;
+                font-size: 11px;
+                gap: 6px;
+            }
+
+            .stat {
+                padding: 6px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+
+            .stat-label {
+                font-size: 9px;
+            }
+
+            .team-section .button-group {
+                grid-template-columns: 1fr;
+                gap: 5px;
+                margin-bottom: 6px;
+            }
+
+            .team-section .button-group button {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+
+            /* Hide control panel elements in small landscape */
+            .screen-controls {
+                display: none;
+            }
+
+            .settings-panel {
+                display: none;
+            }
+
+            /* Hide duplicate clock displays */
+            #game-clock {
+                display: none;
+            }
+
+            #game-clock2 {
+                display: none;
+            }
+        }
+
+        /* Responsive Grid for larger screens */
         @media (max-width: 1024px) {
             .main-display {
                 grid-template-columns: 1fr 1fr;
@@ -361,40 +539,6 @@
 
             .header h1 {
                 font-size: 24px;
-            }
-        }
-
-        /* Landscape Mode */
-        @media (orientation: landscape) and (max-height: 600px) {
-            body {
-                padding: 5px;
-            }
-
-            .container {
-                border-radius: 10px;
-            }
-
-            .main-display {
-                padding: 10px;
-                gap: 5px;
-            }
-
-            .team-section {
-                padding: 10px;
-            }
-
-            .score-display {
-                font-size: 48px;
-                margin: 10px 0;
-            }
-
-            .clock-display {
-                font-size: 28px;
-                padding: 8px;
-            }
-
-            .stat-value {
-                font-size: 18px;
             }
         }
 
@@ -541,10 +685,7 @@
 
             <!-- Center Controls -->
             <div class="center-section">
-                <div class="shot-clock">
-                    <div class="shot-clock-label">Shot Clock</div>
-                    <div class="shot-clock-display" id="shot-clock">24</div>
-                </div>
+                <div class="clock-display" id="game-clock-landscape">12:00</div>
 
                 <div class="control-panel">
                     <div class="control-title">Game Clock</div>
@@ -580,6 +721,11 @@
                         </div>
                         <button class="btn-reset" onclick="resetAll()" style="width: 100%; margin-top: 10px;">RESET GAME</button>
                     </div>
+                </div>
+
+                <div class="shot-clock">
+                    <div class="shot-clock-label">Shot Clock</div>
+                    <div class="shot-clock-display" id="shot-clock">24</div>
                 </div>
             </div>
 
@@ -817,6 +963,7 @@
             const gameClockStr = formatTime(gameState.gameTime);
             document.getElementById('game-clock').textContent = gameClockStr;
             document.getElementById('game-clock2').textContent = gameClockStr;
+            document.getElementById('game-clock-landscape').textContent = gameClockStr;
             
             // Shot Clock
             document.getElementById('shot-clock').textContent = gameState.shotTime.toFixed(1);
