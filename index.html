@@ -9,6 +9,8 @@
     <meta name="theme-color" content="#ff5500">
     <link rel="manifest" href="manifest.json">
     <title>Basketball Scoreboard</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -73,6 +75,19 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 8px;
             text-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 12px 0;
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
         }
 
         .connection-status {
@@ -701,6 +716,7 @@
         <div class="pin-display-section">
             <div class="pin-label">🔐 Secure PIN</div>
             <div class="pin-value" id="pin-display">0000</div>
+            <div id="qrcode"></div>
             <div class="connection-status" id="connection-status">No connections</div>
         </div>
 
@@ -1061,6 +1077,64 @@
             console.log(`[Scoreboard] Peer disconnected: ${peerId}`);
         }
 
+        /**
+         * Initialize the PeerJS host connection and listen for controllers
+         */
+        let peer = null;
+
+        function initPeerConnection() {
+            const peerId = 'scoreboard-' + Math.random().toString(36).substring(2, 9);
+            peer = new Peer(peerId);
+
+            peer.on('open', (id) => {
+                console.log('[Scoreboard] PeerJS host ready with ID:', id);
+                renderPairingQRCode(id);
+            });
+
+            peer.on('connection', (conn) => {
+                console.log('[Scoreboard] Incoming connection from:', conn.peer);
+                trackPeerConnection(conn.peer, conn);
+
+                conn.on('data', (data) => {
+                    handlePeerMessage(conn.peer, data);
+                });
+
+                conn.on('close', () => {
+                    removePeerConnection(conn.peer);
+                });
+
+                conn.on('error', (error) => {
+                    console.error(`[Scoreboard] Connection error with ${conn.peer}:`, error);
+                    removePeerConnection(conn.peer);
+                });
+            });
+
+            peer.on('error', (error) => {
+                console.error('[Scoreboard] PeerJS error:', error);
+                showNotification('Connection error. Please refresh.');
+            });
+        }
+
+        /**
+         * Render a QR code that links a controller device to this scoreboard's peer ID
+         */
+        function renderPairingQRCode(peerId) {
+            const qrContainer = document.getElementById('qrcode');
+            if (!qrContainer) return;
+
+            qrContainer.innerHTML = '';
+
+            const pairingUrl = `${window.location.origin}${window.location.pathname}?mode=controller&peerId=${peerId}`;
+
+            new QRCode(qrContainer, {
+                text: pairingUrl,
+                width: 128,
+                height: 128,
+                colorDark: '#000000',
+                colorLight: '#ffffff'
+            });
+        }
+
         // ============================================================
         // ORIGINAL GAME LOGIC (Score, Fouls, Timeouts, Clocks)
         // ============================================================
@@ -1072,7 +1146,10 @@
             // Generate and display PIN
             gameState.currentPin = generatePin();
             displayPin();
-            
+
+            // Initialize PeerJS host and QR code for controller pairing
+            initPeerConnection();
+
             updateDisplay();
             setupKeyboardShortcuts();
             
